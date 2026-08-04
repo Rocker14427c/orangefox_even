@@ -83,7 +83,7 @@ if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
 	export FOX_RECOVERY_VENDOR_PARTITION="/dev/block/mapper/vendor"
 
 	# Build date/timezone sanity (some OrangeFox UIs are timezone sensitive)
-	export FOX_MAINTAINER_PATCH_VERSION="1"
+	export FOX_MAINTAINER_PATCH_VERSION="3"
 
 	# ------- Optional extras (uncomment to enable) -------
 	# export OF_ADVANCED_SECURITY=1              # extra password options
