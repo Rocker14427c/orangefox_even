@@ -20,7 +20,7 @@ local chkdev=$(echo "$BASH_SOURCE" | grep -w $FDEVICE)
 }
 
 if [ -z "$1" -a -z "$FOX_BUILD_DEVICE" ]; then
-   fox_get_target_device
+   fox_get_target_device || true
 fi
 
 if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
@@ -90,3 +90,6 @@ if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
 	# export FOX_DELETE_AROMAFM=1               # drop AromaFM to save space
 	# export OF_USE_LOCKSCREEN_BUTTON=1         # lock button on the gesture bar
 fi
+
+# never let this script exit non-zero when sourced by build/envsetup.sh (which runs under set -e)
+true

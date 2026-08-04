@@ -97,14 +97,17 @@ jobs:
 
     - name: Building OrangeFox recovery
       run: |
-        set -e
-        source build/envsetup.sh
+        set -x
+        echo "== STEP: source envsetup =="
+        source build/envsetup.sh || { echo "== FATAL: envsetup returned $? =="; exit 1; }
         export ALLOW_MISSING_DEPENDENCIES=true
         export USE_CCACHE=1
         export CCACHE_COMPRESS=1
         export CCACHE_MAXSIZE=50G
         export TZ=Asia/Kolkata
-        lunch twrp_${{ env.DEVICE_NAME }}-eng
+        echo "== STEP: lunch =="
+        lunch twrp_${{ env.DEVICE_NAME }}-eng || { echo "== FATAL: lunch returned $? =="; exit 1; }
+        echo "== STEP: mka =="
         mka adbd ${{ env.BUILD_TARGET }}image -j$(nproc --all)
       working-directory: ${{ github.workspace }}/fox_src
       timeout-minutes: 300
