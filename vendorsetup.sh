@@ -30,7 +30,6 @@ if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
 	export TARGET_DEVICE_ALT="RMX3191, RMX3193, RMX3195, RMX3197, RMX3430, C25, C25s, Narzo 50A"
 
 	# -------- Identity (shown in OrangeFox "About") --------
-	export FOX_VERSION="R12.1_even_v1"
 	export FOX_BUILD_TYPE="Unofficial"
 	export FOX_VARIANT="even-RUI4-A13"
 	export OF_MAINTAINER="Rocker14427c"
@@ -48,7 +47,7 @@ if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
 	# -------- magiskboot is mandatory here: used to patch the vbmeta AVB flags --------
 	export OF_USE_MAGISKBOOT=1
 	export OF_USE_MAGISKBOOT_FOR_ALL_PATCHES=1
-	export OF_PATCH_VBMETA_FLAG=1
+	export FOX_PATCH_VBMETA_FLAG=1
 
 	# -------- Behaviour / sanity --------
 	export OF_DONT_PATCH_ENCRYPTED_DEVICE=1
