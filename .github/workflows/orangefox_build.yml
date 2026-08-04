@@ -1,0 +1,141 @@
+name: OrangeFox Recovery Build (even)
+
+# Builds OrangeFox Recovery for the unified "even" family:
+#   Realme C25 (RMX3191/RMX3193), Realme C25s (RMX3195/RMX3197), Realme Narzo 50A (RMX3430)
+# Uses the OFFICIAL OrangeFox minimal-tree sync script (gitlab.com/OrangeFox/sync).
+# NOTE: this workflow also runs automatically on every push to `main`
+#       (so any commit kicks off a ~2h build on the free runner).
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      FOX_BRANCH:
+        description: "OrangeFox base branch (12.1 = stable, 14.1 = experimental)"
+        required: true
+        default: "12.1"
+        type: choice
+        options:
+          - "12.1"
+          - "14.1"
+      DEVICE_NAME:
+        description: DEVICE_NAME
+        required: true
+        default: "even"
+      BUILD_TARGET:
+        description: BUILD_TARGET
+        required: true
+        default: "recovery"
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    env:
+      # defaults when the workflow is triggered by a plain push
+      FOX_BRANCH: ${{ github.event.inputs.FOX_BRANCH || '12.1' }}
+      DEVICE_NAME: ${{ github.event.inputs.DEVICE_NAME || 'even' }}
+      BUILD_TARGET: ${{ github.event.inputs.BUILD_TARGET || 'recovery' }}
+    steps:
+    - name: Check Out
+      uses: actions/checkout@v4
+
+    - name: Maximize free disk space
+      uses: rokibhasansagar/slimhub_actions@main
+
+    - name: Prepare the environment
+      run: |
+        sudo apt update
+        sudo apt-get install -y zip unzip tar gzip bzip2 rar unrar rsync patch
+        sudo apt -y install gperf gcc-multilib gcc-10-multilib g++-multilib g++-10-multilib libc6-dev lib32ncurses5-dev x11proto-core-dev libx11-dev tree lib32z-dev libgl1-mesa-dev libxml2-utils xsltproc bc ccache lib32readline-dev lib32z1-dev liblz4-tool libncurses5-dev libsdl1.2-dev libwxgtk3.0-gtk3-dev libxml2 lzop pngcrush schedtool squashfs-tools imagemagick libbz2-dev lzma python3
+
+    - name: Install OpenJDK 8 (fox_12.1)
+      if: ${{ env.FOX_BRANCH == '12.1' }}
+      uses: actions/setup-java@v4
+      with:
+        distribution: zulu
+        java-version: '8'
+
+    - name: Install OpenJDK 17 (fox_14.1)
+      if: ${{ env.FOX_BRANCH == '14.1' }}
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: '17'
+
+    - name: Install repo
+      run: |
+        mkdir ~/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        chmod a+x ~/bin/repo
+        sudo ln -sf ~/bin/repo /usr/bin/repo
+
+    - name: Sync OrangeFox minimal tree (official sync script)
+      run: |
+        set -e
+        git config --global user.name "github-actions"
+        git config --global user.email "actions@github.com"
+        git config --global color.ui false
+        git clone https://gitlab.com/OrangeFox/sync.git ofsync
+        bash ofsync/orangefox_sync.sh --branch "${{ env.FOX_BRANCH }}" --path "$GITHUB_WORKSPACE/fox_src"
+      working-directory: ${{ github.workspace }}
+      timeout-minutes: 120
+
+    - name: Clone this device tree
+      run: |
+        git clone ${{ github.server_url }}/${{ github.repository }} -b ${{ github.ref_name }} fox_src/device/realme/even
+        ls -la fox_src/device/realme/even/
+
+    - name: Set Swap Space
+      uses: pierotofy/set-swap-space@master
+      with:
+        swap-size-gb: 12
+
+    - name: Building OrangeFox recovery
+      run: |
+        set -e
+        source build/envsetup.sh
+        export ALLOW_MISSING_DEPENDENCIES=true
+        export USE_CCACHE=1
+        export CCACHE_COMPRESS=1
+        export CCACHE_MAXSIZE=50G
+        export TZ=Asia/Kolkata
+        lunch twrp_${{ env.DEVICE_NAME }}-eng
+        mka adbd ${{ env.BUILD_TARGET }}image -j$(nproc --all)
+      working-directory: ${{ github.workspace }}/fox_src
+      timeout-minutes: 300
+
+    - name: Show build output
+      if: always()
+      run: |
+        echo "== OUT DIR =="
+        ls -lah fox_src/out/target/product/${{ env.DEVICE_NAME }}/ 2>/dev/null || true
+        echo "== DISK =="
+        df -h
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: OrangeFox-${{ env.DEVICE_NAME }}-${{ github.run_id }}
+        path: |
+          fox_src/out/target/product/${{ env.DEVICE_NAME }}/${{ env.BUILD_TARGET }}.img
+          fox_src/out/target/product/${{ env.DEVICE_NAME }}/OrangeFox*.zip
+        if-no-files-found: warn
+
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          fox_src/out/target/product/${{ env.DEVICE_NAME }}/${{ env.BUILD_TARGET }}.img
+          fox_src/out/target/product/${{ env.DEVICE_NAME }}/OrangeFox*.zip
+        name: OrangeFox-${{ env.DEVICE_NAME }}-${{ github.run_id }}
+        tag_name: orangefox-${{ github.run_id }}
+        body: |
+          OrangeFox Recovery (${{ env.FOX_BRANCH }} base)
+          Device: ${{ env.DEVICE_NAME }} (Realme C25 / C25s / Narzo 50A — RMX3430)
+          Target: ${{ env.BUILD_TARGET }}.img
+          Commit: ${{ github.sha }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
