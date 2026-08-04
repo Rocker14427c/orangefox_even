@@ -99,7 +99,9 @@ jobs:
       run: |
         set -x
         echo "== STEP: source envsetup =="
-        source build/envsetup.sh || { echo "== FATAL: envsetup returned $? =="; exit 1; }
+        # NOTE: TWRP/OrangeFox envsetup legitimately ends with a `[ -s frameworks/... ]` test
+        # that is FALSE in the minimal manifest, so its exit status is always 1. Never fatal.
+        source build/envsetup.sh || echo "== (harmless) envsetup returned $? — continuing =="
         export ALLOW_MISSING_DEPENDENCIES=true
         export USE_CCACHE=1
         export CCACHE_COMPRESS=1
