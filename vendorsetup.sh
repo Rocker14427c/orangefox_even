@@ -56,6 +56,8 @@ if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
 	export OF_USE_GREEN_LED=0
 	export OF_FLASHLIGHT_ENABLE=0
 	export OF_ENABLE_LPTOOLS=1
+	# MTK devices: health-HAL battery reading is broken (shows >100%); use legacy battery services
+	export OF_USE_LEGACY_BATTERY_SERVICES=1
 
 	# -------- OTA handling (Realme UI incremental/full OTAs) --------
 	export OF_FIX_OTA_UPDATE_MANUAL_FLASH_ERROR=1
