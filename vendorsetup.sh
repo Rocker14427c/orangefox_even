@@ -37,12 +37,12 @@ if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
 
 	# -------- Display: 720x1600 teardrop notch panel --------
 	export OF_SCREEN_H=1600
-	export OF_STATUS_H=100
+	export OF_STATUS_H=80
 	export OF_STATUS_INDENT_LEFT=48
 	export OF_STATUS_INDENT_RIGHT=48
 	export OF_HIDE_NOTCH=1
 	export OF_CLOCK_POS=1
-	export OF_ALLOW_DISABLE_NAVBAR=0
+	export OF_ALLOW_DISABLE_NAVBAR=1
 
 	# -------- magiskboot is mandatory here: used to patch the vbmeta AVB flags --------
 	export OF_USE_MAGISKBOOT=1
@@ -83,7 +83,7 @@ if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
 	export FOX_RECOVERY_VENDOR_PARTITION="/dev/block/mapper/vendor"
 
 	# Build date/timezone sanity (some OrangeFox UIs are timezone sensitive)
-	export FOX_MAINTAINER_PATCH_VERSION="3"
+	export FOX_MAINTAINER_PATCH_VERSION="4"
 
 	# ------- Optional extras (uncomment to enable) -------
 	# export OF_ADVANCED_SECURITY=1              # extra password options
