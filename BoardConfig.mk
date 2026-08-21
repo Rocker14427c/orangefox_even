@@ -63,6 +63,8 @@ BOARD_DTB_OFFSET := 0x0bc08000
 BOARD_INCLUDE_RECOVERY_DTBO := true
 BOARD_INCLUDE_DTB_IN_BOOTIMG := true
 
+# Kernel: stock 4.19.191 from the working TWRP build (decrypts on RUI4).
+# For custom ROM setups preferring the Zenium 4.19.325 kernel, use prebuilt/kernel_zenium
 TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/kernel
 BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/dtbo
 BOARD_PREBUILT_DTBIMAGE_DIR := $(DEVICE_PATH)/prebuilt/dtb
